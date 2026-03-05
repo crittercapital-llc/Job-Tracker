@@ -4,7 +4,7 @@ import type { Prospect } from "@shared/schema";
 import { STATUSES, INTEREST_LEVELS } from "@shared/schema";
 import { ProspectCard } from "@/components/prospect-card";
 import { AddProspectForm } from "@/components/add-prospect-form";
-import { Briefcase, Plus, Flame, ThumbsUp, Minus, Filter } from "lucide-react";
+import { Briefcase, Plus, Flame, ThumbsUp, Minus, Filter, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,7 +16,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
-type InterestFilter = "All" | typeof INTEREST_LEVELS[number];
+type InterestLevel = typeof INTEREST_LEVELS[number];
+type ColumnFilter = Set<InterestLevel>;
+
+const ALL_LEVELS: Set<InterestLevel> = new Set(INTEREST_LEVELS);
 
 const columnColors: Record<string, string> = {
   Bookmarked: "bg-blue-500",
@@ -28,20 +31,23 @@ const columnColors: Record<string, string> = {
   Withdrawn: "bg-gray-500",
 };
 
-const filterOptions: { label: string; value: InterestFilter; icon: React.ReactNode }[] = [
-  { label: "All", value: "All", icon: null },
+const levelOptions: { label: string; value: InterestLevel; icon: React.ReactNode }[] = [
   { label: "High", value: "High", icon: <Flame className="w-3 h-3 text-red-500" /> },
   { label: "Medium", value: "Medium", icon: <ThumbsUp className="w-3 h-3 text-amber-500" /> },
   { label: "Low", value: "Low", icon: <Minus className="w-3 h-3 text-gray-400" /> },
 ];
+
+function isAllSelected(filter: ColumnFilter): boolean {
+  return filter.size === ALL_LEVELS.size;
+}
 
 function FilterDropdown({
   filter,
   onFilterChange,
   statusKey,
 }: {
-  filter: InterestFilter;
-  onFilterChange: (f: InterestFilter) => void;
+  filter: ColumnFilter;
+  onFilterChange: (f: ColumnFilter) => void;
   statusKey: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -49,6 +55,7 @@ function FilterDropdown({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const menuId = `filter-menu-${statusKey}`;
+  const allSelected = isAllSelected(filter);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -64,10 +71,9 @@ function FilterDropdown({
 
   useEffect(() => {
     if (open) {
-      const activeIndex = filterOptions.findIndex((o) => o.value === filter);
-      itemRefs.current[activeIndex >= 0 ? activeIndex : 0]?.focus();
+      itemRefs.current[0]?.focus();
     }
-  }, [open, filter]);
+  }, [open]);
 
   const handleTriggerKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
@@ -75,6 +81,29 @@ function FilterDropdown({
       setOpen(true);
     }
   }, []);
+
+  const toggleLevel = useCallback(
+    (level: InterestLevel) => {
+      const next = new Set(filter);
+      if (next.has(level)) {
+        next.delete(level);
+        if (next.size === 0) {
+          onFilterChange(new Set(ALL_LEVELS));
+          return;
+        }
+      } else {
+        next.add(level);
+      }
+      onFilterChange(next);
+    },
+    [filter, onFilterChange],
+  );
+
+  const toggleAll = useCallback(() => {
+    onFilterChange(new Set(ALL_LEVELS));
+  }, [onFilterChange]);
+
+  const totalItems = levelOptions.length + 1;
 
   const handleItemKeyDown = useCallback(
     (e: React.KeyboardEvent, index: number) => {
@@ -84,18 +113,22 @@ function FilterDropdown({
         triggerRef.current?.focus();
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        const next = (index + 1) % filterOptions.length;
+        const next = (index + 1) % totalItems;
         itemRefs.current[next]?.focus();
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        const prev = (index - 1 + filterOptions.length) % filterOptions.length;
+        const prev = (index - 1 + totalItems) % totalItems;
         itemRefs.current[prev]?.focus();
       } else if (e.key === "Tab") {
         setOpen(false);
       }
     },
-    [],
+    [totalItems],
   );
+
+  const activeFilterLabel = allSelected
+    ? ""
+    : `: ${Array.from(filter).join(", ")}`;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -105,11 +138,11 @@ function FilterDropdown({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label={`Filter by interest level${filter !== "All" ? `: ${filter}` : ""}`}
+        aria-label={`Filter by interest level${activeFilterLabel}`}
         data-testid={`button-filter-${statusKey}`}
         onKeyDown={handleTriggerKeyDown}
         className={`flex items-center justify-center w-6 h-6 rounded transition-colors ${
-          filter !== "All"
+          !allSelected
             ? "bg-primary/10 text-primary"
             : "text-muted-foreground hover:text-foreground hover:bg-muted"
         }`}
@@ -121,31 +154,51 @@ function FilterDropdown({
           id={menuId}
           role="menu"
           aria-label="Interest level filter"
-          className="absolute right-0 top-full mt-1 z-50 w-32 rounded-md border bg-popover p-1 shadow-md"
+          className="absolute right-0 top-full mt-1 z-50 w-36 rounded-md border bg-popover p-1 shadow-md"
         >
-          {filterOptions.map((opt, i) => (
-            <button
-              key={opt.value}
-              ref={(el) => { itemRefs.current[i] = el; }}
-              role="menuitemradio"
-              aria-checked={filter === opt.value}
-              data-testid={`button-filter-option-${statusKey}-${opt.value.toLowerCase()}`}
-              onClick={() => {
-                onFilterChange(opt.value);
-                setOpen(false);
-                triggerRef.current?.focus();
-              }}
-              onKeyDown={(e) => handleItemKeyDown(e, i)}
-              className={`flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded transition-colors ${
-                filter === opt.value
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-popover-foreground hover:bg-muted"
-              }`}
-            >
-              {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
-              {opt.label}
-            </button>
-          ))}
+          <button
+            ref={(el) => { itemRefs.current[0] = el; }}
+            role="menuitem"
+            data-testid={`button-filter-option-${statusKey}-all`}
+            onClick={toggleAll}
+            onKeyDown={(e) => handleItemKeyDown(e, 0)}
+            className={`flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded transition-colors ${
+              allSelected
+                ? "bg-primary/10 text-primary font-medium"
+                : "text-popover-foreground hover:bg-muted"
+            }`}
+          >
+            <span className="flex items-center justify-center w-3 h-3 flex-shrink-0">
+              {allSelected && <Check className="w-3 h-3" />}
+            </span>
+            All
+          </button>
+          <div className="h-px bg-border my-1" />
+          {levelOptions.map((opt, i) => {
+            const checked = filter.has(opt.value);
+            return (
+              <button
+                key={opt.value}
+                ref={(el) => { itemRefs.current[i + 1] = el; }}
+                role="menuitemcheckbox"
+                aria-checked={checked}
+                data-testid={`button-filter-option-${statusKey}-${opt.value.toLowerCase()}`}
+                onClick={() => toggleLevel(opt.value)}
+                onKeyDown={(e) => handleItemKeyDown(e, i + 1)}
+                className={`flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded transition-colors ${
+                  checked
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-popover-foreground hover:bg-muted"
+                }`}
+              >
+                <span className="flex items-center justify-center w-3 h-3 flex-shrink-0">
+                  {checked && <Check className="w-3 h-3" />}
+                </span>
+                {opt.icon && <span className="flex-shrink-0">{opt.icon}</span>}
+                {opt.label}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
@@ -162,14 +215,14 @@ function KanbanColumn({
   status: string;
   prospects: Prospect[];
   isLoading: boolean;
-  filter: InterestFilter;
-  onFilterChange: (filter: InterestFilter) => void;
+  filter: ColumnFilter;
+  onFilterChange: (filter: ColumnFilter) => void;
 }) {
   const statusKey = status.replace(/\s+/g, "-").toLowerCase();
-  const filteredProspects =
-    filter === "All"
-      ? prospects
-      : prospects.filter((p) => p.interestLevel === filter);
+  const allSelected = isAllSelected(filter);
+  const filteredProspects = allSelected
+    ? prospects
+    : prospects.filter((p) => filter.has(p.interestLevel as InterestLevel));
 
   return (
     <div
@@ -204,7 +257,7 @@ function KanbanColumn({
           ) : filteredProspects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center" data-testid={`empty-${statusKey}`}>
               <p className="text-xs text-muted-foreground">
-                {filter !== "All" ? "No matching prospects" : "No prospects"}
+                {!allSelected ? "No matching prospects" : "No prospects"}
               </p>
             </div>
           ) : (
@@ -220,8 +273,11 @@ function KanbanColumn({
 
 export default function Home() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [columnFilters, setColumnFilters] = useState<Record<string, InterestFilter>>(() =>
-    STATUSES.reduce((acc, s) => ({ ...acc, [s]: "All" as InterestFilter }), {} as Record<string, InterestFilter>)
+  const [columnFilters, setColumnFilters] = useState<Record<string, ColumnFilter>>(() =>
+    STATUSES.reduce(
+      (acc, s) => ({ ...acc, [s]: new Set(ALL_LEVELS) }),
+      {} as Record<string, ColumnFilter>,
+    )
   );
 
   const { data: prospects, isLoading } = useQuery<Prospect[]>({
@@ -282,7 +338,7 @@ export default function Home() {
               status={status}
               prospects={groupedByStatus[status] || []}
               isLoading={isLoading}
-              filter={columnFilters[status] || "All"}
+              filter={columnFilters[status] || new Set(ALL_LEVELS)}
               onFilterChange={(f) =>
                 setColumnFilters((prev) => ({ ...prev, [status]: f }))
               }
