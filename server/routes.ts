@@ -47,6 +47,18 @@ export async function registerRoutes(
       updates.status = body.status;
     }
 
+    if (body.salary !== undefined) {
+      if (body.salary === null) {
+        updates.salary = null;
+      } else {
+        const salaryNum = Number(body.salary);
+        if (!Number.isInteger(salaryNum) || salaryNum <= 0) {
+          return res.status(400).json({ message: "Salary must be a positive whole number" });
+        }
+        updates.salary = salaryNum;
+      }
+    }
+
     if (body.interestLevel !== undefined || body.interest_level !== undefined) {
       const level = body.interestLevel ?? body.interest_level;
       if (!INTEREST_LEVELS.includes(level)) {
