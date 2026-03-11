@@ -59,64 +59,47 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="companyName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Company Name</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Google" {...field} data-testid="input-company-name" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <FormField
+            control={form.control}
+            name="companyName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">Company Name</FormLabel>
+                <FormControl>
+                  <Input className="h-8 text-sm" placeholder="e.g. Google" {...field} data-testid="input-company-name" />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="roleTitle"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Role Title</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Product Manager" {...field} data-testid="input-role-title" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="roleTitle"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">Role Title</FormLabel>
+                <FormControl>
+                  <Input className="h-8 text-sm" placeholder="e.g. Product Manager" {...field} data-testid="input-role-title" />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <FormField
-          control={form.control}
-          name="jobUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Job URL (optional)</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="https://..."
-                  {...field}
-                  value={field.value ?? ""}
-                  data-testid="input-job-url"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <FormField
             control={form.control}
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel className="text-xs">Status</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger data-testid="select-status">
+                    <SelectTrigger className="h-8 text-sm" data-testid="select-status">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                   </FormControl>
@@ -128,7 +111,7 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -138,10 +121,10 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
             name="interestLevel"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Interest Level</FormLabel>
+                <FormLabel className="text-xs">Interest Level</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger data-testid="select-interest">
+                    <SelectTrigger className="h-8 text-sm" data-testid="select-interest">
                       <SelectValue placeholder="Select interest" />
                     </SelectTrigger>
                   </FormControl>
@@ -153,7 +136,53 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <FormField
+            control={form.control}
+            name="jobUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">Job URL (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    className="h-8 text-sm"
+                    placeholder="https://..."
+                    {...field}
+                    value={field.value ?? ""}
+                    data-testid="input-job-url"
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="salary"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">Annual Salary USD (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    className="h-8 text-sm"
+                    type="number"
+                    placeholder="e.g. 120000"
+                    data-testid="input-salary"
+                    value={field.value ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      field.onChange(val === "" ? null : Number(val));
+                    }}
+                  />
+                </FormControl>
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -164,9 +193,10 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
           name="hiringManagerEmail"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Hiring Manager Email (optional)</FormLabel>
+              <FormLabel className="text-xs">Hiring Manager Email (optional)</FormLabel>
               <FormControl>
                 <Input
+                  className="h-8 text-sm"
                   type="email"
                   placeholder="e.g. recruiter@company.com"
                   {...field}
@@ -174,30 +204,7 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
                   data-testid="input-hiring-manager-email"
                 />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="salary"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Annual Salary USD (optional)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="e.g. 120000"
-                  data-testid="input-salary"
-                  value={field.value ?? ""}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    field.onChange(val === "" ? null : Number(val));
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -207,26 +214,26 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes (optional)</FormLabel>
+              <FormLabel className="text-xs">Notes (optional)</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Any additional notes..."
-                  className="resize-none"
-                  rows={3}
+                  className="resize-none text-sm"
+                  rows={2}
                   {...field}
                   value={field.value ?? ""}
                   data-testid="input-notes"
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={mutation.isPending} data-testid="button-submit-prospect">
+        <Button type="submit" className="w-full h-8 text-sm" disabled={mutation.isPending} data-testid="button-submit-prospect">
           {mutation.isPending ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
               Adding...
             </>
           ) : (
