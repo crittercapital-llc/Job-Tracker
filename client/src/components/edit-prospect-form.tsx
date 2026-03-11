@@ -43,6 +43,7 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
       interestLevel: prospect.interestLevel as InsertProspect["interestLevel"],
       notes: prospect.notes ?? "",
       salary: prospect.salary ?? undefined,
+      hiringManagerEmail: prospect.hiringManagerEmail ?? "",
     },
   });
 
@@ -161,6 +162,26 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="hiringManagerEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hiring Manager Email (optional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="e.g. recruiter@company.com"
+                  {...field}
+                  value={field.value ?? ""}
+                  data-testid="input-edit-hiring-manager-email"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

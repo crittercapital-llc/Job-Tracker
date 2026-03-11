@@ -38,6 +38,7 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
       interestLevel: "Medium",
       notes: "",
       salary: undefined,
+      hiringManagerEmail: "",
     },
   });
 
@@ -157,6 +158,26 @@ export function AddProspectForm({ onSuccess }: { onSuccess?: () => void }) {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="hiringManagerEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hiring Manager Email (optional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="e.g. recruiter@company.com"
+                  {...field}
+                  value={field.value ?? ""}
+                  data-testid="input-hiring-manager-email"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

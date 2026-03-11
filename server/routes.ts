@@ -59,6 +59,18 @@ export async function registerRoutes(
       }
     }
 
+    if (body.hiringManagerEmail !== undefined) {
+      if (body.hiringManagerEmail === null || body.hiringManagerEmail === "") {
+        updates.hiringManagerEmail = null;
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (typeof body.hiringManagerEmail !== "string" || !emailRegex.test(body.hiringManagerEmail)) {
+          return res.status(400).json({ message: "Hiring manager email must be a valid email address" });
+        }
+        updates.hiringManagerEmail = body.hiringManagerEmail;
+      }
+    }
+
     if (body.interestLevel !== undefined || body.interest_level !== undefined) {
       const level = body.interestLevel ?? body.interest_level;
       if (!INTEREST_LEVELS.includes(level)) {

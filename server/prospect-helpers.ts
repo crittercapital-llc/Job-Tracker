@@ -46,6 +46,13 @@ export function validateProspect(data: Record<string, unknown>): { valid: boolea
     }
   }
 
+  if (data.hiringManagerEmail !== undefined && data.hiringManagerEmail !== null && data.hiringManagerEmail !== "") {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (typeof data.hiringManagerEmail !== "string" || !emailRegex.test(data.hiringManagerEmail)) {
+      errors.push("Hiring manager email must be a valid email address");
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
