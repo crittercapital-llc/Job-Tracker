@@ -231,6 +231,101 @@ describe("insertProspectSchema (Zod)", () => {
   });
 });
 
+describe("validateProspect — hiringManagerEmail", () => {
+  const validBase = { companyName: "Google", roleTitle: "Software Engineer" };
+
+  test("accepts a valid email address", () => {
+    const result = validateProspect({ ...validBase, hiringManagerEmail: "jane@company.com" });
+    expect(result.valid).toBe(true);
+  });
+
+  test("accepts a subdomain email address", () => {
+    const result = validateProspect({ ...validBase, hiringManagerEmail: "recruiter@talent.company.com" });
+    expect(result.valid).toBe(true);
+  });
+
+  test("accepts null (clearing the field)", () => {
+    const result = validateProspect({ ...validBase, hiringManagerEmail: null });
+    expect(result.valid).toBe(true);
+  });
+
+  test("accepts undefined (field not provided)", () => {
+    const result = validateProspect({ ...validBase, hiringManagerEmail: undefined });
+    expect(result.valid).toBe(true);
+  });
+
+  test("accepts an empty string (treated as unset)", () => {
+    const result = validateProspect({ ...validBase, hiringManagerEmail: "" });
+    expect(result.valid).toBe(true);
+  });
+
+  test("rejects an address missing @", () => {
+    const result = validateProspect({ ...validBase, hiringManagerEmail: "notanemail" });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain("Hiring manager email must be a valid email address");
+  });
+
+  test("rejects an address missing domain", () => {
+    const result = validateProspect({ ...validBase, hiringManagerEmail: "user@" });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain("Hiring manager email must be a valid email address");
+  });
+
+  test("rejects an address with spaces", () => {
+    const result = validateProspect({ ...validBase, hiringManagerEmail: "user name@company.com" });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain("Hiring manager email must be a valid email address");
+  });
+
+  test("rejects a non-string value", () => {
+    const result = validateProspect({ ...validBase, hiringManagerEmail: 12345 });
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain("Hiring manager email must be a valid email address");
+  });
+});
+
+describe("insertProspectSchema (Zod) — hiringManagerEmail", () => {
+  const validData = {
+    companyName: "Google",
+    roleTitle: "Software Engineer",
+    status: "Bookmarked" as const,
+    interestLevel: "Medium" as const,
+  };
+
+  test("accepts a valid email", () => {
+    const result = insertProspectSchema.safeParse({ ...validData, hiringManagerEmail: "hr@corp.com" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.hiringManagerEmail).toBe("hr@corp.com");
+    }
+  });
+
+  test("accepts null", () => {
+    const result = insertProspectSchema.safeParse({ ...validData, hiringManagerEmail: null });
+    expect(result.success).toBe(true);
+  });
+
+  test("accepts undefined (omitted)", () => {
+    const result = insertProspectSchema.safeParse(validData);
+    expect(result.success).toBe(true);
+  });
+
+  test("rejects a malformed email", () => {
+    const result = insertProspectSchema.safeParse({ ...validData, hiringManagerEmail: "bademail" });
+    expect(result.success).toBe(false);
+  });
+
+  test("rejects an email missing TLD", () => {
+    const result = insertProspectSchema.safeParse({ ...validData, hiringManagerEmail: "user@domain" });
+    expect(result.success).toBe(false);
+  });
+
+  test("rejects a number", () => {
+    const result = insertProspectSchema.safeParse({ ...validData, hiringManagerEmail: 42 });
+    expect(result.success).toBe(false);
+  });
+});
+
 describe("getNextStatus", () => {
   test("advances Bookmarked to Applied", () => {
     expect(getNextStatus("Bookmarked")).toBe("Applied");

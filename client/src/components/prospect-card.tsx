@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Prospect } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus, DollarSign } from "lucide-react";
+import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus, DollarSign, Mail } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -113,18 +113,35 @@ export function ProspectCard({ prospect }: { prospect: Prospect }) {
           )}
         </div>
 
-        {prospect.jobUrl && (
-          <a
-            href={prospect.jobUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-            onClick={(e) => e.stopPropagation()}
-            data-testid={`link-job-url-${prospect.id}`}
-          >
-            <ExternalLink className="w-3 h-3" />
-            Posting
-          </a>
+        {(prospect.jobUrl || prospect.hiringManagerEmail) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {prospect.jobUrl && (
+              <a
+                href={prospect.jobUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                onClick={(e) => e.stopPropagation()}
+                data-testid={`link-job-url-${prospect.id}`}
+              >
+                <ExternalLink className="w-3 h-3" />
+                Posting
+              </a>
+            )}
+            {prospect.hiringManagerEmail && (
+              <a
+                href={`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(prospect.hiringManagerEmail)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                onClick={(e) => e.stopPropagation()}
+                data-testid={`link-hiring-email-${prospect.id}`}
+              >
+                <Mail className="w-3 h-3" />
+                {prospect.hiringManagerEmail}
+              </a>
+            )}
+          </div>
         )}
 
         {prospect.notes && (

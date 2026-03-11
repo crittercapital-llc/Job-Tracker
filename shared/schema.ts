@@ -23,6 +23,7 @@ export const prospects = pgTable("prospects", {
   interestLevel: text("interest_level").notNull().default("Medium"),
   notes: text("notes"),
   salary: integer("salary"),
+  hiringManagerEmail: text("hiring_manager_email"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -37,6 +38,7 @@ export const insertProspectSchema = createInsertSchema(prospects).omit({
   jobUrl: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
   salary: z.number().int().positive().optional().nullable(),
+  hiringManagerEmail: z.string().email("Must be a valid email address").optional().nullable(),
 });
 
 export type InsertProspect = z.infer<typeof insertProspectSchema>;
